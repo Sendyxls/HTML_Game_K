@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐍 Змейка - GitHub Pages</title>
+    <style>
+
+       body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 10px;
+    background-color: #1a1a2e;
+    touch-action: manipulation;
+    
+    /* Фоновая картинка */
+    background-image: url('kat.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    position: relative;
+}
+
+/* Затемнение фона для лучшей читаемости */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.5);
+    z-index: -1;
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 400px; /* Уменьшили контейнер */
+    background-image: url(./back.jpg);
+    background-repeat: no-repeat;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(178, 178, 178, 0.3);
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 1;
+}
+
+h1 {
+    color: #ffffff;
+    margin-bottom: 10px;
+    font-size: clamp(20px, 5vw, 28px); /* Немного уменьшили */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#user-greeting {
+    color: #ffffff;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.score-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 300px; /* Уменьшили */
+    margin-bottom: 15px;
+    font-size: clamp(14px, 4vw, 16px); /* Уменьшили */
+    font-weight: bold;
+    background: rgba(52, 73, 94, 0.1);
+    padding: 8px 12px; /* Уменьшили */
+    border-radius: 8px;
+    color: #ffffff;
+}
+
+#game-board {
+    width: 100%;
+    max-width: 300px; /* Уменьшили игровое поле */
+    height: 300px; /* Уменьшили высоту */
+    background-color: #34495e;
+    border: 3px solid #2c3e50;
+    display: grid;
+    grid-template-rows: repeat(10, 1fr); /* 10 строк вместо 20 */
+    grid-template-columns: repeat(10, 1fr); /* 10 колонок вместо 20 */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+}
+
+
+/* Стили для змейки с ПОЛНОЙ картинкой в каждом сегменте */
+.snake {
+    background-image: url('kat.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 2px solid rgba(255, 255, 255, 0.7); /* Более заметная граница */
+    border-radius: 4px;
+    position: relative;
+    z-index: 3;
+    box-shadow: 
+        inset 0 0 8px rgba(0, 0, 0, 0.4),
+        0 0 3px rgba(255, 255, 255, 0.6);
+}
+
+/* Голова змейки с эффектом */
+.snake-head {
+    background-image: url('kat.jpg');
+    background-size: cover;
+    background-position: center;
+    border: 3px solid #ffeb3b;
+    border-radius: 5px;
+    position: relative;
+    z-index: 4;
+    box-shadow: 
+        inset 0 0 12px rgba(0, 0, 0, 0.5),
+        0 0 8px rgba(255, 235, 59, 0.8);
+    animation: headGlow 2s infinite alternate;
+}
+
+@keyframes headGlow {
+    from {
+        box-shadow: 
+            inset 0 0 12px rgba(0, 0, 0, 0.5),
+            0 0 6px rgba(255, 235, 59, 0.6);
+    }
+    to {
+        box-shadow: 
+            inset 0 0 12px rgba(0, 0, 0, 0.5),
+            0 0 12px rgba(255, 235, 59, 1);
+    }
+}
+
+/* Эффект для хвоста */
+.snake-tail {
+    background-image: url('kat.jpg');
+    background-size: cover;
+    background-position: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 3px;
+    position: relative;
+    z-index: 2;
+    opacity: 0.8;
+}
+
+.food {
+    background-image: url('noize.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    position: relative;
+    border-radius: 10%;
+    animation: pulse 1.2s;
+    position: relative;
+    z-index: 4;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); } /* Увеличили анимацию */
+    100% { transform: scale(1); }
+}
+
+/* Остальные стили остаются без изменений */
+.mobile-controls {
+    display: none;
+    margin-top: 15px; /* Уменьшили отступ */
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.control-row {
+    display: flex;
+    gap: 15px; /* Уменьшили расстояние между кнопками */
+    justify-content: center;
+    align-items: center;
+}
+
+.control-btn {
+    width: 50px; /* Уменьшили кнопки */
+    height: 50px;
+    font-size: 20px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+    background: linear-gradient(135deg, #2980b9, #21618c);
+}
+
+.control-btn.up {
+    margin-bottom: 8px;
+}
+
+
+
+.controls {
+    margin-top: 15px; /* Уменьшили отступ */
+    text-align: center;
+    color: #2c3e50;
+    font-size: clamp(12px, 3vw, 14px); /* Уменьшили текст */
+}
+
+button {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    padding: 10px 20px; /* Уменьшили кнопки */
+    margin: 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: clamp(12px, 3vw, 14px);
+    transition: all 0.3s;
+    touch-action: manipulation;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    font-weight: 600;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+.game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.95);
+    color: white;
+    padding: 25px; /* Уменьшили отступы */
+    border-radius: 12px;
+    text-align: center;
+    display: none;
+    z-index: 1000;
+    width: 80%;
+    max-width: 280px; /* Уменьшили */
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.game-over h2 {
+    margin-top: 0;
+    font-size: clamp(18px, 6vw, 22px); /* Уменьшили */
+    color: #e74c3c;
+}
+
+
+
+/* Предотвращаем выделение текста при тапе */
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Стили для кнопок в game-over */
+#restart-btn {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+}
+
+#tg-share-btn {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+}
+
+#tg-close-btn {
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+}
+
+/* Анимация появления */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.game-container {
+    animation: fadeIn 0.5s ease-out;
+}
+
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🐍 Змейка</h1>
+        <div class="score-container">
+            <div>Счёт: <span id="score">0</span></div>
+            <div>Рекорд: <span id="high-score">0</span></div>
+        </div>
+        <div id="game-board"></div>
+        
+        <div class="mobile-controls" id="mobile-controls">
+            <div class="control-row">
+                <button class="control-btn up" data-direction="up">↑</button>
+            </div>
+            <div class="control-row">
+                <button class="control-btn left" data-direction="left">←</button>
+                <button class="control-btn down" data-direction="down">↓</button>
+                <button class="control-btn right" data-direction="right">→</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="start-btn">Начать игру</button>
+            <button id="pause-btn" style="display:none;">Пауза</button>
+        </div>
+    </div>
+    
+    <div class="game-over" id="game-over">
+        <h2>Игра окончена!</h2>
+        <p>Ваш счёт: <span id="final-score">0</span></p>
+        <button id="restart-btn">Играть снова</button>
+    </div>
+
+    <script>
+        // Константы игры
+const GRID_SIZE = 10; // Уменьшили с 20 до 10
+const GAME_SPEED = 200; // Немного замедлили для меньшего поля
+
+// Элементы DOM
+const gameBoard = document.getElementById('game-board');
+const scoreElement = document.getElementById('score');
+const highScoreElement = document.getElementById('high-score');
+const startButton = document.getElementById('start-btn');
+const pauseButton = document.getElementById('pause-btn');
+const gameOverScreen = document.getElementById('game-over');
+const finalScoreElement = document.getElementById('final-score');
+const restartButton = document.getElementById('restart-btn');
+
+// Элементы для мобильного управления
+const mobileControls = document.getElementById('mobile-controls');
+const controlButtons = document.querySelectorAll('.control-btn');
+
+// Переменные игры
+let snake = [];
+let food = {};
+let direction = 'right';
+let nextDirection = 'right';
+let gameInterval;
+let score = 0;
+let highScore = localStorage.getItem('snakeHighScore') || 0;
+let isPaused = false;
+let gameStarted = false;
+
+// Инициализация игры
+function initGame() {
+    // Создаем начальную змейку (меньше сегментов для маленького поля)
+    snake = [
+        {x: 5, y: 5},  // Центр поля 10x10
+        {x: 4, y: 5},
+        {x: 3, y: 5}
+    ];
+    
+    // Генерируем первую еду
+    generateFood();
+    
+    // Обновляем отображение счета
+    score = 0;
+    scoreElement.textContent = score;
+    highScoreElement.textContent = highScore;
+    
+    // Очищаем игровое поле
+    gameBoard.innerHTML = '';
+    
+    // Скрываем экран завершения игры
+    gameOverScreen.style.display = 'none';
+    
+    // Сбрасываем направление
+    direction = 'right';
+    nextDirection = 'right';
+    
+    // Рисуем начальное состояние
+    draw();
+}
+
+// Генерация еды
+function generateFood() {
+    let newFood;
+    let foodOnSnake;
+    let attempts = 0;
+    
+    do {
+        foodOnSnake = false;
+        newFood = {
+            x: Math.floor(Math.random() * GRID_SIZE),
+            y: Math.floor(Math.random() * GRID_SIZE)
+        };
+        
+        // Проверяем, не находится ли еда на змейке
+        for (let segment of snake) {
+            if (segment.x === newFood.x && segment.y === newFood.y) {
+                foodOnSnake = true;
+                break;
+            }
+        }
+        
+        attempts++;
+        if (attempts > 50) {
+            console.error('Не удалось найти место для еды');
+            break;
+        }
+    } while (foodOnSnake);
+    
+    food = newFood;
+}
+
+// Отрисовка игры
+function draw() {
+    // Очищаем игровое поле
+    gameBoard.innerHTML = '';
+    
+    // Рисуем змейку
+    snake.forEach((segment, index) => {
+        const snakeElement = document.createElement('div');
+        snakeElement.style.gridRowStart = segment.y + 1;
+        snakeElement.style.gridColumnStart = segment.x + 1;
+        
+        if (index === 0) {
+            // Голова змейки
+            snakeElement.classList.add('snake-head');
+        } else if (index === snake.length - 1) {
+            // Хвост змейки
+            snakeElement.classList.add('snake-tail');
+        } else {
+            // Тело змейки
+            snakeElement.classList.add('snake');
+        }
+        
+        gameBoard.appendChild(snakeElement);
+    });
+    
+    // Рисуем еду
+    const foodElement = document.createElement('div');
+    foodElement.style.gridRowStart = food.y + 1;
+    foodElement.style.gridColumnStart = food.x + 1;
+    foodElement.classList.add('food');
+    gameBoard.appendChild(foodElement);
+}
+
+// Обновление игры
+function update() {
+    if (isPaused) return;
+    
+    // Обновляем направление
+    direction = nextDirection;
+    
+    // Создаем новую голову
+    const head = {...snake[0]};
+    
+    // Двигаем голову в текущем направлении
+    switch(direction) {
+        case 'up':
+            head.y--;
+            break;
+        case 'down':
+            head.y++;
+            break;
+        case 'left':
+            head.x--;
+            break;
+        case 'right':
+            head.x++;
+            break;
+    }
+    
+    // Проверяем столкновение со стенами
+    if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
+        gameOver();
+        return;
+    }
+    
+    // Проверяем столкновение с собой
+    for (let i = 0; i < snake.length; i++) {
+        if (snake[i].x === head.x && snake[i].y === head.y) {
+            gameOver();
+            return;
+        }
+    }
+    
+    // Добавляем новую голову
+    snake.unshift(head);
+    
+    // Проверяем, съела ли змейка еду
+    if (head.x === food.x && head.y === food.y) {
+        // Увеличиваем счет
+        score++;
+        scoreElement.textContent = score;
+        
+        // Обновляем рекорд
+        if (score > highScore) {
+            highScore = score;
+            highScoreElement.textContent = highScore;
+            localStorage.setItem('snakeHighScore', highScore);
+        }
+        
+        // Генерируем новую еду
+        generateFood();
+    } else {
+        // Удаляем хвост, если еда не съедена
+        snake.pop();
+    }
+    
+    // Перерисовываем игру
+    draw();
+}
+
+// Обработка нажатий клавиш (клавиатура)
+function handleKeyPress(event) {
+    if (!gameStarted) return;
+    
+    switch(event.key) {
+        case 'ArrowUp':
+            if (direction !== 'down') nextDirection = 'up';
+            event.preventDefault();
+            break;
+        case 'ArrowDown':
+            if (direction !== 'up') nextDirection = 'down';
+            event.preventDefault();
+            break;
+        case 'ArrowLeft':
+            if (direction !== 'right') nextDirection = 'left';
+            event.preventDefault();
+            break;
+        case 'ArrowRight':
+            if (direction !== 'left') nextDirection = 'right';
+            event.preventDefault();
+            break;
+        case ' ':
+            togglePause();
+            event.preventDefault();
+            break;
+    }
+}
+
+// Обработка сенсорных стрелочек (для Telegram)
+function handleTouchControl(newDirection) {
+    if (!gameStarted) return;
+    
+    switch(newDirection) {
+        case 'up':
+            if (direction !== 'down') nextDirection = 'up';
+            break;
+        case 'down':
+            if (direction !== 'up') nextDirection = 'down';
+            break;
+        case 'left':
+            if (direction !== 'right') nextDirection = 'left';
+            break;
+        case 'right':
+            if (direction !== 'left') nextDirection = 'right';
+            break;
+    }
+    
+    // Добавляем визуальный фидбек для кнопок
+    const button = document.querySelector(`[data-direction="${newDirection}"]`);
+    if (button) {
+        button.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+            button.style.transform = 'scale(1)';
+        }, 100);
+    }
+}
+
+// Завершение игры
+function gameOver() {
+    clearInterval(gameInterval);
+    gameStarted = false;
+    finalScoreElement.textContent = score;
+    gameOverScreen.style.display = 'block';
+}
+
+// Начало игры
+function startGame() {
+    if (gameStarted) return;
+    
+    initGame();
+    gameStarted = true;
+    isPaused = false;
+    pauseButton.textContent = 'Пауза';
+    pauseButton.style.display = 'inline-block';
+    gameInterval = setInterval(update, GAME_SPEED);
+}
+
+// Пауза игры
+function togglePause() {
+    if (!gameStarted) return;
+    
+    isPaused = !isPaused;
+    pauseButton.textContent = isPaused ? 'Продолжить' : 'Пауза';
+}
+
+// Инициализация Telegram Web App (если доступно)
+function initTelegram() {
+    if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        
+        // Раскрываем на весь экран
+        tg.expand();
+        
+        // Включаем подтверждение закрытия
+        tg.enableClosingConfirmation();
+        
+        // Показываем кнопку "Назад"
+        tg.BackButton.show();
+        
+        // Обработчик кнопки "Назад"
+        tg.BackButton.onClick(() => {
+            tg.close();
+        });
+        
+        console.log('Telegram Web App инициализирован');
+    }
+}
+
+// События
+document.addEventListener('keydown', handleKeyPress);
+startButton.addEventListener('click', startGame);
+pauseButton.addEventListener('click', togglePause);
+restartButton.addEventListener('click', startGame);
+
+// Добавляем обработчики для сенсорных стрелочек
+controlButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+        const direction = e.target.getAttribute('data-direction');
+        handleTouchControl(direction);
+    });
+    
+    // Добавляем поддержку touch событий для лучшей отзывчивости
+    button.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const direction = e.target.getAttribute('data-direction');
+        handleTouchControl(direction);
+    });
+});
+
+// Предотвращаем скроллинг страницы при использовании стрелочек
+document.addEventListener('touchmove', (e) => {
+    if (e.target.classList.contains('control-btn')) {
+        e.preventDefault();
+    }
+}, { passive: false });
+
+// Инициализация при загрузке страницы
+window.addEventListener('load', () => {
+    highScoreElement.textContent = highScore;
+    initTelegram();
+    
+    // Автоматически показываем мобильные контролы на маленьких экранах
+    if (window.innerWidth <= 768) {
+        mobileControls.style.display = 'flex';
+    }
+});
+
+// Обработка изменения размера окна
+window.addEventListener('resize', () => {
+    if (window.innerWidth <= 768) {
+        mobileControls.style.display = 'flex';
+    } else {
+        mobileControls.style.display = 'none';
+    }
+});
+    </script>
+</body>
+</html>
